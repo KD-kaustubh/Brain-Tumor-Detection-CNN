@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # 🧠 Brain Tumor Detection using CNN
 
 This project is a deep learning-based system for detecting brain tumors from MRI images using Convolutional Neural Networks (CNN).
@@ -49,3 +50,7 @@ This project is a deep learning-based system for detecting brain tumors from MRI
 1. Install dependencies:
    ```bash
    pip install -r requirements.txt
+=======
+# Brain-Tumor-Detection-CNN
+Built a Brain Tumor Detection System using Deep Learning
+>>>>>>> 6a949bd092e6ff749c0e3fc2f3e575b2950ecf34
