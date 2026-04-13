@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brain Tumor Detection</title>
+    <style>
+        :root {
+            --bg-1: #f5efe6;
+            --bg-2: #dce8f5;
+            --card: #ffffff;
+            --ink: #101828;
+            --muted: #5f6c7b;
+            --primary: #0e7490;
+            --primary-dark: #155e75;
+            --secondary: #475467;
+            --danger: #b42318;
+            --success: #157347;
+            --ring: rgba(14, 116, 144, 0.25);
+            --line: #d7e1ea;
+            --surface-soft: #f8fafc;
+            --tips-bg: #fffef8;
+            --tips-line: #e3ebf3;
+        }
+
+        body[data-theme="dark"] {
+            --bg-1: #0f172a;
+            --bg-2: #111827;
+            --card: #0b1220;
+            --ink: #e5e7eb;
+            --muted: #9ca3af;
+            --primary: #0ea5b7;
+            --primary-dark: #0e7490;
+            --secondary: #94a3b8;
+            --danger: #ef4444;
+            --success: #22c55e;
+            --ring: rgba(14, 165, 183, 0.25);
+            --line: #243042;
+            --surface-soft: #111a2a;
+            --tips-bg: #131d30;
+            --tips-line: #243042;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            color: var(--ink);
+            background:
+                radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0) 40%),
+                radial-gradient(circle at 90% 10%, rgba(14, 116, 144, 0.12), rgba(14, 116, 144, 0) 35%),
+                linear-gradient(145deg, var(--bg-1), var(--bg-2));
+            display: grid;
+            place-items: center;
+            padding: 20px;
+        }
+
+        .panel {
+            width: 100%;
+            max-width: 720px;
+            background: var(--card);
+            border-radius: 20px;
+            padding: 28px;
+            box-shadow: 0 20px 45px rgba(16, 24, 40, 0.15);
+            animation: slideIn 0.55s ease;
+        }
+
+        .topbar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 6px;
+        }
+
+        .theme-toggle {
+            border: 1px solid var(--line);
+            background: transparent;
+            color: var(--ink);
+            border-radius: 999px;
+            padding: 7px 12px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: none;
+        }
+
+        .title {
+            margin: 0;
+            text-align: center;
+            font-size: clamp(1.6rem, 2.7vw, 2.2rem);
+            letter-spacing: 0.2px;
+        }
+
+        .subtitle {
+            margin: 8px 0 24px;
+            text-align: center;
+            color: var(--muted);
+            font-size: 0.98rem;
+        }
+
+        .upload {
+            border: 2px dashed #c6d4e1;
+            border-radius: 14px;
+            padding: 18px;
+            background: #f7fbff;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+
+        body[data-theme="dark"] .upload {
+            border-color: #2d3a4f;
+            background: #101a2b;
+        }
+
+        .upload:hover {
+            border-color: var(--primary);
+            background: #eef8ff;
+        }
+
+        body[data-theme="dark"] .upload:hover {
+            background: #122238;
+        }
+
+        .upload.dragover {
+            border-color: var(--primary);
+            background: #e7f7ff;
+        }
+
+        body[data-theme="dark"] .upload.dragover {
+            background: #13263f;
+        }
+
+        .upload label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        input[type="file"] {
+            width: 100%;
+            border: 1px solid #d0dae5;
+            border-radius: 10px;
+            padding: 10px;
+            background: #fff;
+        }
+
+        body[data-theme="dark"] input[type="file"] {
+            border-color: #2d3a4f;
+            background: #0d1728;
+            color: var(--muted);
+        }
+
+        .drop-help {
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 0.84rem;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-top: 16px;
+        }
+
+        .preview-wrap {
+            margin-top: 18px;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+
+        .preview-title {
+            font-size: 0.95rem;
+            color: var(--muted);
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .preview-frame {
+            width: 100%;
+            aspect-ratio: 5 / 3;
+            max-height: 260px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            overflow: hidden;
+            background: linear-gradient(135deg, #f8fbff, #eef4fb);
+            display: grid;
+            place-items: center;
+            cursor: zoom-in;
+        }
+
+        body[data-theme="dark"] .preview-frame {
+            background: linear-gradient(135deg, #0f1a2b, #122238);
+        }
+
+        .preview-frame img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: none;
+        }
+
+        .preview-placeholder {
+            color: #708195;
+            font-size: 0.9rem;
+            padding: 0 16px;
+            text-align: center;
+        }
+
+        .preview-meta {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .meta-pill {
+            background: #eef5ff;
+            color: #1d3a5f;
+            border: 1px solid #d5e4f7;
+            border-radius: 999px;
+            padding: 4px 10px;
+            font-size: 0.82rem;
+            max-width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        body[data-theme="dark"] .meta-pill {
+            background: #122238;
+            color: #c7d7ee;
+            border-color: #274365;
+        }
+
+        button {
+            border: none;
+            border-radius: 12px;
+            padding: 11px 22px;
+            font-size: 0.98rem;
+            font-weight: 700;
+            color: #fff;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            cursor: pointer;
+            transition: transform 0.15s ease, box-shadow 0.2s ease;
+            box-shadow: 0 8px 20px rgba(14, 116, 144, 0.28);
+        }
+
+        .reset-btn {
+            text-decoration: none;
+            border-radius: 12px;
+            padding: 10px 16px;
+            font-size: 0.95rem;
+            font-weight: 700;
+            border: 1px solid var(--line);
+            color: var(--secondary);
+            background: transparent;
+        }
+
+        button:hover {
+            transform: translateY(-1px);
+        }
+
+        button:focus-visible {
+            outline: 3px solid var(--ring);
+            outline-offset: 2px;
+        }
+
+        .result {
+            margin-top: 24px;
+            border-radius: 14px;
+            padding: 16px;
+            background: var(--surface-soft);
+            border: 1px solid var(--tips-line);
+        }
+
+        .result h2 {
+            margin: 0 0 10px;
+            font-size: 1.2rem;
+        }
+
+        .badge {
+            display: inline-block;
+            margin-left: 8px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            color: #fff;
+            font-size: 0.85rem;
+            vertical-align: middle;
+        }
+
+        .badge.success {
+            background: var(--success);
+        }
+
+        .badge.danger {
+            background: var(--danger);
+        }
+
+        .meter {
+            margin-top: 12px;
+        }
+
+        .meter-head {
+            display: flex;
+            justify-content: space-between;
+            color: var(--muted);
+            font-size: 0.92rem;
+            margin-bottom: 6px;
+        }
+
+        .bar {
+            height: 10px;
+            border-radius: 999px;
+            background: #dce8f5;
+            overflow: hidden;
+        }
+
+        body[data-theme="dark"] .bar {
+            background: #233248;
+        }
+
+        .fill {
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(90deg, #10b981, #0891b2);
+            transition: width 0.6s ease;
+        }
+
+        .tips {
+            margin-top: 16px;
+            border: 1px solid var(--tips-line);
+            background: var(--tips-bg);
+            border-radius: 12px;
+            padding: 14px;
+        }
+
+        .tips h3 {
+            margin: 0 0 8px;
+            font-size: 1rem;
+        }
+
+        .tips ul {
+            margin: 0;
+            padding-left: 18px;
+            color: #465669;
+            line-height: 1.5;
+        }
+
+        .disclaimer {
+            margin-top: 12px;
+            color: var(--muted);
+            font-size: 0.86rem;
+            line-height: 1.4;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(3, 7, 18, 0.84);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 22px;
+            z-index: 50;
+        }
+
+        .modal.open {
+            display: flex;
+        }
+
+        .modal-image {
+            max-width: min(1100px, 95vw);
+            max-height: 88vh;
+            width: auto;
+            height: auto;
+            border-radius: 14px;
+            background: #000;
+            box-shadow: 0 30px 50px rgba(0, 0, 0, 0.45);
+            object-fit: contain;
+        }
+
+        .modal-close {
+            position: fixed;
+            top: 14px;
+            right: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            background: rgba(0, 0, 0, 0.35);
+            color: #fff;
+            box-shadow: none;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(12px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .panel {
+                padding: 20px;
+                border-radius: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="panel">
+        <div class="topbar">
+            <button class="theme-toggle" id="themeToggle" type="button" aria-label="Toggle light and dark theme">Dark Mode</button>
+        </div>
+
+        <h1 class="title">Brain Tumor Detection</h1>
+        <p class="subtitle">Upload an MRI image to run a model prediction.</p>
+
+        <form method="POST" enctype="multipart/form-data">
+            <section class="upload" id="dropZone">
+                <label for="image">Choose MRI scan image</label>
+                <input id="image" type="file" name="image" accept="image/*" required>
+                <p class="drop-help">Or drag and drop image here.</p>
+            </section>
+
+            <section class="preview-wrap">
+                <p class="preview-title">Uploaded image preview</p>
+                <div class="preview-frame">
+                    <img
+                        id="previewImage"
+                        {% if uploaded_image_data %}
+                            src="{{ uploaded_image_data }}"
+                            style="display:block;"
+                        {% endif %}
+                        alt="Uploaded MRI preview"
+                    >
+                    <p id="previewPlaceholder" class="preview-placeholder" {% if uploaded_image_data %}style="display:none;"{% endif %}>
+                        Select an image to preview it here before analysis.
+                    </p>
+                </div>
+                <div class="preview-meta" id="previewMeta" {% if not uploaded_file_name %}style="display:none;"{% endif %}>
+                    <span class="meta-pill" id="metaFileName">{{ uploaded_file_name or "" }}</span>
+                    <span class="meta-pill" id="metaFileSize">{{ uploaded_file_size_kb if uploaded_file_size_kb is not none else "" }}{% if uploaded_file_size_kb is not none %} KB{% endif %}</span>
+                </div>
+            </section>
+
+            <div class="actions">
+                <button type="submit">Analyze Image</button>
+                <a class="reset-btn" href="/">Reset</a>
+            </div>
+        </form>
+
+        <section class="tips">
+            <h3>Tips for better prediction quality</h3>
+            <ul>
+                <li>Use a clear MRI image with minimal blur and good contrast.</li>
+                <li>Prefer centered brain scans and avoid screenshots with overlays.</li>
+                <li>If confidence is low, test a cleaner image from the same study.</li>
+            </ul>
+        </section>
+
+        {% if result %}
+            <section class="result">
+                <h2>
+                    Prediction:
+                    {% if result == "Tumor" %}
+                        <span class="badge danger">{{ result }}</span>
+                    {% else %}
+                        <span class="badge success">{{ result }}</span>
+                    {% endif %}
+                </h2>
+
+                <div class="meter">
+                    <div class="meter-head">
+                        <span>Model confidence</span>
+                        <strong>{{ confidence_pct }}% ({{ confidence_level }})</strong>
+                    </div>
+                    <div class="bar">
+                        <div class="fill" id="confidenceFill" data-confidence="{{ confidence_pct if confidence_pct is not none else 0 }}"></div>
+                    </div>
+                </div>
+
+                <p class="disclaimer">This tool is for educational support and should not be used as a standalone medical diagnosis.</p>
+            </section>
+        {% endif %}
+    </main>
+
+    <div class="modal" id="imageModal" aria-hidden="true">
+        <button type="button" class="modal-close" id="closeModalBtn">Close</button>
+        <img id="modalImage" class="modal-image" alt="Full size MRI image">
+    </div>
+
+    <script>
+        const dropZone = document.getElementById("dropZone");
+        const input = document.getElementById("image");
+        const previewImage = document.getElementById("previewImage");
+        const previewPlaceholder = document.getElementById("previewPlaceholder");
+        const previewMeta = document.getElementById("previewMeta");
+        const metaFileName = document.getElementById("metaFileName");
+        const metaFileSize = document.getElementById("metaFileSize");
+        const themeToggle = document.getElementById("themeToggle");
+        const imageModal = document.getElementById("imageModal");
+        const modalImage = document.getElementById("modalImage");
+        const closeModalBtn = document.getElementById("closeModalBtn");
+        const confidenceFill = document.getElementById("confidenceFill");
+
+        function applyTheme(theme) {
+            document.body.dataset.theme = theme;
+            themeToggle.textContent = theme === "dark" ? "Light Mode" : "Dark Mode";
+            localStorage.setItem("theme", theme);
+        }
+
+        const savedTheme = localStorage.getItem("theme") || "light";
+        applyTheme(savedTheme);
+
+        if (confidenceFill) {
+            const score = Number(confidenceFill.dataset.confidence || 0);
+            confidenceFill.style.width = Math.max(0, Math.min(100, score)) + "%";
+        }
+
+        themeToggle.addEventListener("click", function () {
+            const current = document.body.dataset.theme === "dark" ? "dark" : "light";
+            applyTheme(current === "dark" ? "light" : "dark");
+        });
+
+        function showPreview(file) {
+            if (!file || !file.type.startsWith("image/")) {
+                return;
+            }
+
+            const objectUrl = URL.createObjectURL(file);
+            previewImage.src = objectUrl;
+            previewImage.style.display = "block";
+            previewPlaceholder.style.display = "none";
+
+            metaFileName.textContent = file.name;
+            metaFileSize.textContent = (file.size / 1024).toFixed(1) + " KB";
+            previewMeta.style.display = "flex";
+        }
+
+        input.addEventListener("change", function () {
+            const file = input.files && input.files[0];
+            showPreview(file);
+        });
+
+        ["dragenter", "dragover"].forEach(function (evt) {
+            dropZone.addEventListener(evt, function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.add("dragover");
+            });
+        });
+
+        ["dragleave", "drop"].forEach(function (evt) {
+            dropZone.addEventListener(evt, function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                dropZone.classList.remove("dragover");
+            });
+        });
+
+        dropZone.addEventListener("drop", function (e) {
+            const files = e.dataTransfer && e.dataTransfer.files;
+            if (!files || !files.length) {
+                return;
+            }
+
+            const dt = new DataTransfer();
+            dt.items.add(files[0]);
+            input.files = dt.files;
+            showPreview(files[0]);
+        });
+
+        previewImage.addEventListener("click", function () {
+            if (!previewImage.src) {
+                return;
+            }
+
+            modalImage.src = previewImage.src;
+            imageModal.classList.add("open");
+            imageModal.setAttribute("aria-hidden", "false");
+        });
+
+        function closeModal() {
+            imageModal.classList.remove("open");
+            imageModal.setAttribute("aria-hidden", "true");
+        }
+
+        closeModalBtn.addEventListener("click", closeModal);
+        imageModal.addEventListener("click", function (e) {
+            if (e.target === imageModal) {
+                closeModal();
+            }
+        });
+
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html>
