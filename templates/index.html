@@ -48,7 +48,7 @@
         body {
             margin: 0;
             min-height: 100vh;
-            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            font-family: "Trebuchet MS", "Segoe UI", "Helvetica Neue", sans-serif;
             color: var(--ink);
             background:
                 radial-gradient(circle at 10% 20%, rgba(255, 255, 255, 0.85), rgba(255, 255, 255, 0) 40%),
@@ -99,6 +99,87 @@
             text-align: center;
             color: var(--muted);
             font-size: 0.98rem;
+        }
+
+        .hero {
+            border-radius: 18px;
+            padding: 18px;
+            background: linear-gradient(135deg, rgba(14, 116, 144, 0.08), rgba(255, 255, 255, 0.75));
+            border: 1px solid var(--line);
+            margin-bottom: 18px;
+        }
+
+        body[data-theme="dark"] .hero {
+            background: linear-gradient(135deg, rgba(14, 165, 183, 0.14), rgba(11, 18, 32, 0.92));
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: rgba(14, 116, 144, 0.12);
+            color: var(--primary-dark);
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        body[data-theme="dark"] .eyebrow {
+            color: #8bd7e3;
+            background: rgba(14, 165, 183, 0.15);
+        }
+
+        .hero-copy {
+            margin: 12px 0 14px;
+            color: var(--muted);
+            line-height: 1.55;
+        }
+
+        .hero-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 10px;
+        }
+
+        .hero-card {
+            padding: 12px;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.8);
+            border: 1px solid var(--line);
+        }
+
+        body[data-theme="dark"] .hero-card {
+            background: rgba(9, 15, 27, 0.9);
+        }
+
+        .hero-card strong {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 0.95rem;
+        }
+
+        .hero-card span {
+            color: var(--muted);
+            font-size: 0.85rem;
+            line-height: 1.45;
+        }
+
+        .alert {
+            margin: 0 0 16px;
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid transparent;
+            font-size: 0.94rem;
+            line-height: 1.45;
+        }
+
+        .alert.error {
+            background: rgba(180, 35, 24, 0.08);
+            border-color: rgba(180, 35, 24, 0.18);
+            color: var(--danger);
         }
 
         .upload {
@@ -409,6 +490,10 @@
                 padding: 20px;
                 border-radius: 16px;
             }
+
+            .hero-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
@@ -420,6 +505,29 @@
 
         <h1 class="title">Brain Tumor Detection</h1>
         <p class="subtitle">Upload an MRI image to run a model prediction.</p>
+
+        <section class="hero" aria-label="Project summary">
+            <span class="eyebrow">CNN inference workspace</span>
+            <p class="hero-copy">This app classifies a brain MRI as Tumor or No Tumor, then displays a confidence score and a quick visual preview so you can inspect the input before and after analysis.</p>
+            <div class="hero-grid">
+                <div class="hero-card">
+                    <strong>Model input</strong>
+                    <span>Images are normalized and resized to 128 × 128 before inference.</span>
+                </div>
+                <div class="hero-card">
+                    <strong>Fast feedback</strong>
+                    <span>Drag and drop or browse for a scan, then preview the file instantly.</span>
+                </div>
+                <div class="hero-card">
+                    <strong>Clinical caution</strong>
+                    <span>Results are educational and should not replace a professional diagnosis.</span>
+                </div>
+            </div>
+        </section>
+
+        {% if error_message %}
+            <div class="alert error" role="alert">{{ error_message }}</div>
+        {% endif %}
 
         <form method="POST" enctype="multipart/form-data">
             <section class="upload" id="dropZone">
@@ -450,7 +558,7 @@
             </section>
 
             <div class="actions">
-                <button type="submit">Analyze Image</button>
+                <button type="submit">Run Analysis</button>
                 <a class="reset-btn" href="/">Reset</a>
             </div>
         </form>

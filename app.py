@@ -7,9 +7,11 @@ import cv2
 from tensorflow.keras.models import load_model
 
 app = Flask(__name__)
+app.config["MAX_CONTENT_LENGTH"] = 8 * 1024 * 1024
 
 model = None
 model_lock = Lock()
+ALLOWED_IMAGE_EXTENSIONS = {".png", ".jpg", ".jpeg", ".bmp", ".gif", ".webp", ".tif", ".tiff"}
 
 
 def get_model():
@@ -19,6 +21,13 @@ def get_model():
             if model is None:
                 model = load_model("model/brain_tumor_detector.h5")
     return model
+
+
+def is_supported_image(file_storage):
+    filename = file_storage.filename or ""
+    _, extension = os.path.splitext(filename.lower())
+    mime_type = (file_storage.mimetype or "").lower()
+    return extension in ALLOWED_IMAGE_EXTENSIONS or mime_type.startswith("image/")
 
 def predict_image(img):
     img = cv2.resize(img, (128,128))
@@ -41,10 +50,15 @@ def index():
     uploaded_image_data = None
     uploaded_file_name = None
     uploaded_file_size_kb = None
+    error_message = None
     
     if request.method == "POST":
         file = request.files.get("image")
-        if file and file.filename:
+        if not file or not file.filename:
+            error_message = "Choose an MRI image before running the prediction."
+        elif not is_supported_image(file):
+            error_message = "Please upload a supported image file such as PNG, JPG, JPEG, BMP, GIF, WEBP, TIF, or TIFF."
+        else:
             file_bytes = file.read()
             img = cv2.imdecode(np.frombuffer(file_bytes, np.uint8), 1)
             if img is not None:
@@ -61,6 +75,8 @@ def index():
                     confidence_level = "Medium"
                 else:
                     confidence_level = "Low"
+            else:
+                error_message = "The uploaded file could not be read as an image. Please try a different MRI scan."
 
     return render_template(
         "index.html",
@@ -71,6 +87,7 @@ def index():
         uploaded_image_data=uploaded_image_data,
         uploaded_file_name=uploaded_file_name,
         uploaded_file_size_kb=uploaded_file_size_kb,
+        error_message=error_message,
     )
 
 if __name__ == "__main__":
