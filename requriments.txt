@@ -1,8 +1,0 @@
-flask
-tensorflow
-opencv-python-headless
-numpy
-scikit-learn
-matplotlib
-seaborn
-gunicorn

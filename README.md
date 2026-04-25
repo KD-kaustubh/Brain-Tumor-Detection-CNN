@@ -1,22 +1,39 @@
 # Brain Tumor Detection (CNN + Flask)
 
-This project detects brain tumors from MRI images using a pre-trained CNN model and a Flask web application.
+A deep learning web application that predicts whether an uploaded brain MRI image shows Tumor or No Tumor using a trained CNN model.
+
+## Live Demo
+
+https://brain-tumor-detection-cnn-jz82.onrender.com
 
 ## Features
-- Upload MRI images and run tumor prediction.
-- Drag-and-drop upload support.
-- Instant image preview before submit.
-- Click preview to open full-size image viewer.
-- Confidence percentage with confidence level (High/Medium/Low).
-- Reset button to clear current state quickly.
-- Light/Dark mode toggle (saved in browser).
+
+- MRI image upload with drag-and-drop support
+- Instant image preview before prediction
+- Click-to-open full-size image viewer
+- Prediction result: Tumor or No Tumor
+- Confidence score shown as percentage
+- Confidence level labels: High, Medium, Low
+- Reset action for quick re-testing
+- Light/Dark mode toggle
+
+## Tech Stack
+
+- Python
+- Flask
+- TensorFlow / Keras
+- OpenCV (headless)
+- NumPy
+- Gunicorn (production server)
 
 ## Project Structure
-```
+
+```text
 brain-tumor-detection/
 |-- app.py
-|-- README.md
-|-- requriments.txt
+|-- Procfile
+|-- runtime.txt
+|-- requirements.txt
 |-- model/
 |   `-- brain_tumor_detector.h5
 |-- notebook/
@@ -26,46 +43,50 @@ brain-tumor-detection/
     `-- index.html
 ```
 
-## Tech Stack
-- Python
-- Flask
-- TensorFlow / Keras
-- OpenCV
-- NumPy
+## Local Setup
 
-## Setup and Run
-1. Create and activate a virtual environment (recommended).
+1. Clone the repository and enter the project folder.
+2. Create and activate a virtual environment.
+3. Install dependencies:
 
-2. Install dependencies:
 ```bash
-pip install -r requriments.txt
+pip install -r requirements.txt
 ```
 
-3. Start the Flask app:
+4. Run the Flask app:
+
 ```bash
 python app.py
 ```
 
-4. Open in browser:
+5. Open in browser:
+
 ```text
 http://127.0.0.1:5000
 ```
 
-## Model Details
-- Model file loaded by the app: `model/brain_tumor_detector.h5`
-- Input preprocessing in `app.py`:
-  - Resize to `128x128`
-  - Normalize pixel range to `[0, 1]`
-  - Add batch dimension
+## Model Inference Pipeline
 
-## Prediction Output
-- Label: `Tumor` or `No Tumor`
-- Confidence: class-aware score shown as percentage in UI
-- Confidence level:
-  - High: >= 85%
-  - Medium: 60% to 84.99%
-  - Low: < 60%
+1. Read uploaded image
+2. Resize to 128 x 128
+3. Normalize pixel values to [0, 1]
+4. Expand dimensions for batch input
+5. Run CNN prediction
+6. Return class label and confidence
+
+## Deployment (Render)
+
+This project is configured for Render with:
+
+- Procfile start command:
+  - gunicorn --bind 0.0.0.0:$PORT app:app --workers 1 --threads 2 --timeout 300
+- Python version pin:
+  - runtime.txt -> python-3.12.10
+- Build command:
+  - pip install -r requirements.txt
 
 ## Notes
-- This tool is for educational/research support only and is not a medical diagnosis system.
-- If you see model file errors, verify that `model/brain_tumor_detector.h5` exists.
+
+- This project is for educational and research support.
+- It is not a replacement for professional medical diagnosis.
+- Ensure model file exists at model/brain_tumor_detector.h5.
