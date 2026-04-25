@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request
 import base64
+import os
 import numpy as np
 import cv2
 from tensorflow.keras.models import load_model
@@ -63,4 +64,6 @@ def index():
     )
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    debug = os.environ.get("FLASK_DEBUG", "0") == "1"
+    app.run(host="0.0.0.0", port=port, debug=debug)
