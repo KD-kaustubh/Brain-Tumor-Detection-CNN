@@ -1,21 +1,31 @@
 from flask import Flask, render_template, request
 import base64
 import os
+from threading import Lock
 import numpy as np
 import cv2
 from tensorflow.keras.models import load_model
 
 app = Flask(__name__)
 
-# Load model
-model = load_model("model/brain_tumor_detector.h5")
+model = None
+model_lock = Lock()
+
+
+def get_model():
+    global model
+    if model is None:
+        with model_lock:
+            if model is None:
+                model = load_model("model/brain_tumor_detector.h5")
+    return model
 
 def predict_image(img):
     img = cv2.resize(img, (128,128))
     img = img / 255.0
     img = np.reshape(img, (1,128,128,3))
     
-    pred = float(model.predict(img, verbose=0)[0][0])
+    pred = float(get_model().predict(img, verbose=0)[0][0])
     
     label = "Tumor" if pred > 0.5 else "No Tumor"
     confidence = pred if label == "Tumor" else 1 - pred
